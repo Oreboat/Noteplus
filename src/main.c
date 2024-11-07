@@ -6,19 +6,17 @@
 
 int main(int argc, char* argv[]) {
 
+    uint32_t start_time, frame_time;
     int running = initialize_window();
 
     initialize_input();
 
     char inputText[MAX_INPUT_LENGTH] = "";  // C string to hold the input
-    char displayText[MAX_INPUT_LENGTH] = "";
 
-    int framecount = 0;
     while (running) {
-        // TODO:
-        /* Current model is CPU-hog, cap framerate. */
-        /* However, do not sacrifice input responsiveness. */
-        printf("frame number: %d\n", framecount++);
+    
+        start_time = SDL_GetTicks();
+
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
@@ -30,6 +28,12 @@ int main(int argc, char* argv[]) {
 
         SDL_SetRenderDrawColor(get_renderer(), 0, 0, 0, 255);  // Clear screen
         SDL_RenderClear(get_renderer());
+
+        frame_time = SDL_GetTicks() - start_time;
+        if (frame_time < FRAME_DELAY) {
+            SDL_Delay(FRAME_DELAY - frame_time);  // Delay to match target frame time
+        }
+
     }
 
     close_input();
