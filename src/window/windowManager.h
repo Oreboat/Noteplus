@@ -5,18 +5,19 @@
 #include <GL/glew.h>
 #include <stdio.h>
 
+
+/* Initialize all necessary properties of program window */
 int initialize_window(void);
 
-// The `window` variable is only visible to windowManager.c
-// so use this to be able to use it elsewhere
-SDL_Window* get_window();
+SDL_Window* get_window(void);
 
-SDL_Renderer* get_renderer();
+SDL_Renderer* get_renderer(void);
 
-TTF_Font* get_font();
+TTF_Font* get_font(void);
 
-SDL_Color* get_color();
+SDL_Color* get_color(void);
 
-void destroy_window();
+/* Cleans up after window resources */
+void destroy_window(void);
 
-#endif // WINDOW_MANAGER_H 
+#endif // WINDOW_MANAGER_H

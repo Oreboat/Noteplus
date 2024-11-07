@@ -20,10 +20,7 @@ int main(int argc, char* argv[]) {
                 running = 0;
             }
             get_input(&event, inputText);
-            //strncpy(displayText, get_input(&event, inputText), MAX_INPUT_LENGTH);
-            //printf("Input: %s\n", displayText);
-            //displayText[0] = '\0';
-            //nputText[0] = '\0';
+            render_input(inputText, 0, 0, get_color());
         }
 
         SDL_SetRenderDrawColor(get_renderer(), 0, 0, 0, 255);  // Clear screen
