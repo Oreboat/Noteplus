@@ -15,6 +15,9 @@ int main(int argc, char* argv[]) {
 
     int framecount = 0;
     while (running) {
+        // TODO:
+        /* Current model is CPU-hog, cap framerate. */
+        /* However, do not sacrifice input responsiveness. */
         printf("frame number: %d\n", framecount++);
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0) {
