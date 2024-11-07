@@ -13,7 +13,9 @@ int main(int argc, char* argv[]) {
     char inputText[MAX_INPUT_LENGTH] = "";  // C string to hold the input
     char displayText[MAX_INPUT_LENGTH] = "";
 
+    int framecount = 0;
     while (running) {
+        printf("frame number: %d\n", framecount++);
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
