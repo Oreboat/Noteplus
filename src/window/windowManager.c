@@ -10,8 +10,8 @@ static SDL_Color color  = {
 };
 
 int initialize_window(void) {
-    int width = 640;
-    int height = 480;
+    int width = 768;
+    int height = 432;
     SDL_GLContext mainContext = NULL;
     
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -76,7 +76,7 @@ int initialize_window(void) {
     return 1;
 }
 
-void destroy_window() {
+void destroy_window(void) {
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyRenderer(renderer);
@@ -84,18 +84,18 @@ void destroy_window() {
     SDL_Quit();
 }
 
-SDL_Renderer* get_renderer() {
+SDL_Renderer* get_renderer(void) {
     return renderer;
 }
 
-SDL_Window* get_window() {
+SDL_Window* get_window(void) {
     return window;
 }
 
-TTF_Font* get_font() {
+TTF_Font* get_font(void) {
     return font;
 }
 
-SDL_Color* get_color() {
+SDL_Color* get_color(void) {
     return &color;
 }

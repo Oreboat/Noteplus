@@ -6,6 +6,11 @@
 
 int main(int argc, char* argv[]) {
 
+    /* Buffer exists in main: in main.c, have something to delimit  */
+    /* the buffer by so that in the main loop, when a newline       */
+    /* is detected you lower the render coords by the length        */
+    /* of font                                                      */
+
     uint32_t start_time, frame_time;
     int running = initialize_window();
 
