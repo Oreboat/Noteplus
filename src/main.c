@@ -23,11 +23,6 @@ int newline_counter(char buffer[])
 
 int main(int argc, char* argv[]) {
 
-    /* Buffer exists in main: in main.c, have something to delimit  */
-    /* the buffer by so that in the main loop, when a newline       */
-    /* is detected you lower the render coords by the length        */
-    /* of font                                                      */
-
     uint32_t start_time, frame_time;
     uint32_t render_x, render_y;
     uint32_t newline_count;
@@ -52,7 +47,6 @@ int main(int argc, char* argv[]) {
     char inputText[MAX_INPUT_LENGTH] = ""; 
 
     while (running) {
-        /* Maybe keep running count of newlines, so you can backspace them too. */
         
         start_time = SDL_GetTicks();
 
@@ -71,6 +65,10 @@ int main(int argc, char* argv[]) {
             render_y = newline_count * font_height;
             render_x = 0;
 
+            /* TODO:                                                       */
+            /* Instead of rendering the whole buffer (which this is doing) */
+            /* Delimit the buffer by newlines and render each line         */
+            /* one at a time so each line appears on its own y-axis.       */
             render_input(inputText, render_x, render_y, get_color());
         }
 
