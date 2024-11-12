@@ -4,6 +4,23 @@
 #include "input/input.h"
 #include "common.h"
 
+int newline_counter(char buffer[]) 
+{
+    int i;
+    int newline_count = 0;
+    while (buffer[i] != '\0') 
+    {
+        if(buffer[i] == '\n') 
+        {
+            ++newline_count;
+        }
+
+        ++i;
+    }
+
+    return newline_count;
+}
+
 int main(int argc, char* argv[]) {
 
     /* Buffer exists in main: in main.c, have something to delimit  */
@@ -12,14 +29,31 @@ int main(int argc, char* argv[]) {
     /* of font                                                      */
 
     uint32_t start_time, frame_time;
-    int running = initialize_window();
+    uint32_t render_x, render_y;
+    uint32_t newline_count;
+    uint32_t font_height;
+    TTF_Font* font;
 
+    /* Init phase */
+    int running = initialize_window();
     initialize_input();
 
-    char inputText[MAX_INPUT_LENGTH] = "";  // C string to hold the input
+    font = get_font();
+    if (font == NULL)
+    {
+        puts("font failed in main.");
+        return -1;
+    }
+
+    font_height = TTF_FontHeight(font); // magic number for proper alignment
+    printf("Font height: %d\n", font_height);
+
+    /* Buffer to store and check user input */
+    char inputText[MAX_INPUT_LENGTH] = ""; 
 
     while (running) {
-    
+        /* Maybe keep running count of newlines, so you can backspace them too. */
+        
         start_time = SDL_GetTicks();
 
         SDL_Event event;
@@ -27,8 +61,17 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_QUIT) {
                 running = 0;
             }
+    
             get_input(&event, inputText);
-            render_input(inputText, 0, 0, get_color());
+
+            /* Trivial solution for now, optimize later */
+            newline_count = newline_counter(inputText); 
+
+            /* render down newline_count * fontsize */
+            render_y = newline_count * font_height;
+            render_x = 0;
+
+            render_input(inputText, render_x, render_y, get_color());
         }
 
         SDL_SetRenderDrawColor(get_renderer(), 0, 0, 0, 255);  // Clear screen
