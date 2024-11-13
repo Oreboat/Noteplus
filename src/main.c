@@ -4,6 +4,7 @@
 #include "input/input.h"
 #include "common.h"
 
+/* Counts total newlines in `buffer` */
 int newline_counter(char buffer[]) 
 {
     int i;
@@ -19,6 +20,13 @@ int newline_counter(char buffer[])
     }
 
     return newline_count;
+}
+
+/* Returns the index of the earliest newline. */
+int get_newline_position(char buffer[]) {
+
+
+    return -1;
 }
 
 int main(int argc, char* argv[]) {
@@ -44,7 +52,7 @@ int main(int argc, char* argv[]) {
     printf("Font height: %d\n", font_height);
 
     /* Buffer to store and check user input */
-    char inputText[MAX_INPUT_LENGTH] = ""; 
+    char input_text[MAX_INPUT_LENGTH] = ""; 
 
     while (running) {
         
@@ -56,10 +64,10 @@ int main(int argc, char* argv[]) {
                 running = 0;
             }
     
-            get_input(&event, inputText);
+            get_input(&event, input_text);
 
             /* Trivial solution for now, optimize later */
-            newline_count = newline_counter(inputText); 
+            newline_count = newline_counter(input_text); 
 
             /* render down newline_count * fontsize */
             render_y = newline_count * font_height;
@@ -69,7 +77,15 @@ int main(int argc, char* argv[]) {
             /* Instead of rendering the whole buffer (which this is doing) */
             /* Delimit the buffer by newlines and render each line         */
             /* one at a time so each line appears on its own y-axis.       */
-            render_input(inputText, render_x, render_y, get_color());
+
+            /* if I want to start x chars in, i can do input_text + x.     */
+
+            /* Modify render_input to render up to `count` chars. After,   */
+            /* render input again from input_text + count, repeating until */
+            /* there are no more newlines in the buffer. May be iterative. */
+
+            
+            render_input(input_text, render_x, render_y, get_color());
         }
 
         SDL_SetRenderDrawColor(get_renderer(), 0, 0, 0, 255);  // Clear screen
