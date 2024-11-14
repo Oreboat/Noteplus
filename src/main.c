@@ -50,6 +50,9 @@ size_t get_line(char dest_buf[], const char source_buf[], size_t len, size_t off
 
 int main(int argc, char* argv[]) 
 {
+    /* TODO: make a flag that represents wheter or not         */
+    /* the input changed, and therefore needs to be redrawn.   */
+    
     size_t offset, line_length;
     uint32_t start_time, frame_time;
     uint32_t render_x, render_y;
@@ -96,14 +99,15 @@ int main(int argc, char* argv[])
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
             SDL_RenderPresent(renderer);
+            goto end;
         }
 
+        /* Render screen one line at a time */
         render_x = 0;
         offset = 0;
         render_y = 0;
         while (offset < strlen(input_text))
         {
-            // get one line, render it
             line_length = get_line(render_buf, input_text, strlen(input_text), offset);
 
             render_input(render_buf, render_x, render_y, get_color());
@@ -120,7 +124,7 @@ int main(int argc, char* argv[])
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Clear screen
         SDL_RenderClear(renderer);
        
-
+        end:
         frame_time = SDL_GetTicks() - start_time;
         if (frame_time < FRAME_DELAY) 
         {
