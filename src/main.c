@@ -110,9 +110,14 @@ int main(int argc, char* argv[])
             offset += line_length;
         }
 
+        /* Moved render_present out of render_input so it only renders once. */
+        /* Flicker begone!                                                   */
+        SDL_RenderPresent(renderer);
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Clear screen
         SDL_RenderClear(renderer);
        
+
         frame_time = SDL_GetTicks() - start_time;
         if (frame_time < FRAME_DELAY) {
             SDL_Delay(FRAME_DELAY - frame_time);  // Delay to match target frame time

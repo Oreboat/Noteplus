@@ -55,7 +55,7 @@ int render_input(const char* text, int x, int y, SDL_Color* color) {
 
     // Render the texture to the screen
     SDL_RenderCopy(renderer, text_texture, NULL, &renderQuad);
-    SDL_RenderPresent(renderer);
+    //SDL_RenderPresent(renderer);
 
     // Free the surface and texture
     SDL_FreeSurface(text_surface);
