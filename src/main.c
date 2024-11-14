@@ -22,15 +22,34 @@ int newline_counter(char buffer[])
     return newline_count;
 }
 
-/* Returns the index of the earliest newline. */
-int get_newline_position(char buffer[]) {
+/* getline() is POSIX-only, so here is a custom version. */
+/* Returns bytes written, 0 on fail.                     */
+size_t get_line(char dest_buf[], const char source_buf[], size_t len, size_t offset)
+{
+    
+    //return bytes_written;
+    if (!dest_buf || !source_buf || len == 0) {
+        puts("get_line: Invalid arguments.");
+        return 0;
+    }
 
+    size_t i = 0;
+    while (offset < len && source_buf[offset] != '\0' && source_buf[offset] != '\n') {
+        dest_buf[i++] = source_buf[offset++];
+    }
 
-    return -1;
+    if (source_buf[offset] == '\n') {
+        dest_buf[i++] = '\n';  // Copy newline if present
+        ++offset;
+    }
+    
+    dest_buf[i] = '\0';  // Null-terminate the destination buffer
+    return i;  // Return the number of characters written
 }
 
-int main(int argc, char* argv[]) {
-
+int main(int argc, char* argv[]) 
+{
+    size_t offset, line_length;
     uint32_t start_time, frame_time;
     uint32_t render_x, render_y;
     uint32_t newline_count;
@@ -52,8 +71,10 @@ int main(int argc, char* argv[]) {
     printf("Font height: %d\n", font_height);
 
     /* Buffer to store and check user input */
-    char input_text[MAX_INPUT_LENGTH] = ""; 
+    char input_text[MAX_INPUT_LENGTH] = "";
+    char render_buf[MAX_INPUT_LENGTH] = "";
 
+    SDL_Renderer *renderer = get_renderer();
     while (running) {
         
         start_time = SDL_GetTicks();
@@ -66,31 +87,32 @@ int main(int argc, char* argv[]) {
     
             get_input(&event, input_text);
 
-            /* Trivial solution for now, optimize later */
-            newline_count = newline_counter(input_text); 
-
-            /* render down newline_count * fontsize */
-            render_y = newline_count * font_height;
-            render_x = 0;
-
-            /* TODO:                                                       */
-            /* Instead of rendering the whole buffer (which this is doing) */
-            /* Delimit the buffer by newlines and render each line         */
-            /* one at a time so each line appears on its own y-axis.       */
-
-            /* if I want to start x chars in, i can do input_text + x.     */
-
-            /* Modify render_input to render up to `count` chars. After,   */
-            /* render input again from input_text + count, repeating until */
-            /* there are no more newlines in the buffer. May be iterative. */
-
-            
-            render_input(input_text, render_x, render_y, get_color());
+        }
+        
+        if (strlen(input_text) == 0) {
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Clear screen
+            SDL_RenderClear(renderer);
+            SDL_RenderPresent(renderer);
         }
 
-        SDL_SetRenderDrawColor(get_renderer(), 0, 0, 0, 255);  // Clear screen
-        SDL_RenderClear(get_renderer());
+        render_x = 0;
+        offset = 0;
+        render_y = 0;
+        while (offset < strlen(input_text))
+        {
+            // get one line, render it
+            line_length = get_line(render_buf, input_text, strlen(input_text), offset);
 
+            render_input(render_buf, render_x, render_y, get_color());
+
+            render_y += font_height;
+            
+            offset += line_length;
+        }
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Clear screen
+        SDL_RenderClear(renderer);
+       
         frame_time = SDL_GetTicks() - start_time;
         if (frame_time < FRAME_DELAY) {
             SDL_Delay(FRAME_DELAY - frame_time);  // Delay to match target frame time
