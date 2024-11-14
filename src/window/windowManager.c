@@ -9,7 +9,8 @@ static SDL_Color color  = {
     255
 };
 
-int initialize_window(void) {
+int initialize_window(void) 
+{
     int width = 768;
     int height = 432;
     SDL_GLContext mainContext = NULL;
@@ -48,7 +49,8 @@ int initialize_window(void) {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     font = TTF_OpenFont("TitilliumWeb-Regular.ttf", 14);
-    if(font == NULL) {
+    if(font == NULL) 
+    {
         puts("font not opened.");
         return 0;
     }
@@ -76,7 +78,8 @@ int initialize_window(void) {
     return 1;
 }
 
-void destroy_window(void) {
+void destroy_window(void) 
+{
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyRenderer(renderer);
@@ -84,18 +87,22 @@ void destroy_window(void) {
     SDL_Quit();
 }
 
-SDL_Renderer* get_renderer(void) {
+SDL_Renderer* get_renderer(void) 
+{
     return renderer;
 }
 
-SDL_Window* get_window(void) {
+SDL_Window* get_window(void) 
+{
     return window;
 }
 
-TTF_Font* get_font(void) {
+TTF_Font* get_font(void) 
+{
     return font;
 }
 
-SDL_Color* get_color(void) {
+SDL_Color* get_color(void) 
+{
     return &color;
 }

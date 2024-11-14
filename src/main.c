@@ -26,19 +26,20 @@ int newline_counter(char buffer[])
 /* Returns bytes written, 0 on fail.                     */
 size_t get_line(char dest_buf[], const char source_buf[], size_t len, size_t offset)
 {
-    
-    //return bytes_written;
-    if (!dest_buf || !source_buf || len == 0) {
+    if (!dest_buf || !source_buf || len == 0) 
+    {
         puts("get_line: Invalid arguments.");
         return 0;
     }
 
     size_t i = 0;
-    while (offset < len && source_buf[offset] != '\0' && source_buf[offset] != '\n') {
+    while (offset < len && source_buf[offset] != '\0' && source_buf[offset] != '\n') 
+    {
         dest_buf[i++] = source_buf[offset++];
     }
 
-    if (source_buf[offset] == '\n') {
+    if (source_buf[offset] == '\n') 
+    {
         dest_buf[i++] = '\n';  // Copy newline if present
         ++offset;
     }
@@ -75,8 +76,8 @@ int main(int argc, char* argv[])
     char render_buf[MAX_INPUT_LENGTH] = "";
 
     SDL_Renderer *renderer = get_renderer();
-    while (running) {
-        
+    while (running) 
+    {    
         start_time = SDL_GetTicks();
 
         SDL_Event event;
@@ -89,8 +90,10 @@ int main(int argc, char* argv[])
 
         }
         
-        if (strlen(input_text) == 0) {
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Clear screen
+        /* Clear screen if empty input */
+        if (strlen(input_text) == 0) 
+        {
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
             SDL_RenderPresent(renderer);
         }
@@ -119,7 +122,8 @@ int main(int argc, char* argv[])
        
 
         frame_time = SDL_GetTicks() - start_time;
-        if (frame_time < FRAME_DELAY) {
+        if (frame_time < FRAME_DELAY) 
+        {
             SDL_Delay(FRAME_DELAY - frame_time);  // Delay to match target frame time
         }
 

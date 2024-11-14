@@ -1,25 +1,30 @@
 #include "input.h"
 
-void initialize_input(void) {
+void initialize_input(void) 
+{
     SDL_StartTextInput();
 }
 
-void close_input(void) {
+void close_input(void) 
+{
     SDL_StopTextInput();
 }
 
-int render_input(const char* text, int x, int y, SDL_Color* color) {
+int render_input(const char* text, int x, int y, SDL_Color* color) 
+{
 
     SDL_Renderer* renderer = get_renderer();
     TTF_Font* font;
     int font_height;
 
-    if(renderer == NULL) {
+    if(renderer == NULL) 
+    {
         puts("rendering failed, renderer is null.");
         return 0;
     }
 
-    if(strlen(text) == 0) {
+    if(strlen(text) == 0) 
+    {
         // clears screen if there should be no text
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -29,7 +34,8 @@ int render_input(const char* text, int x, int y, SDL_Color* color) {
 
     font = get_font();
 
-    if(font == NULL) {
+    if(font == NULL) 
+    {
         puts("Could not get font.");
         return 0;
     }
@@ -44,7 +50,8 @@ int render_input(const char* text, int x, int y, SDL_Color* color) {
 
     // Create texture from surface pixels
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-    if (!text_texture) {
+    if (!text_texture) 
+    {
         printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
         SDL_FreeSurface(text_surface);
         return 0;
@@ -64,7 +71,8 @@ int render_input(const char* text, int x, int y, SDL_Color* color) {
     return 1;
 }
 
-char* get_input(SDL_Event* event, char buffer[]) {
+char* get_input(SDL_Event* event, char buffer[])
+{
     
     /* Font height for newline calculations */
     TTF_Font* font = get_font();
@@ -79,12 +87,15 @@ char* get_input(SDL_Event* event, char buffer[]) {
 
     // detects non-printable keys
     if (event->type == SDL_KEYDOWN) {
-        if (event->key.keysym.sym == SDLK_BACKSPACE && strlen(buffer) > 0) {
+        if (event->key.keysym.sym == SDLK_BACKSPACE && strlen(buffer) > 0) 
+        {
 
             // Handle backspace: remove the last character
             buffer[strlen(buffer) - 1] = '\0';
             
-        } else if (event->key.keysym.sym == SDLK_RETURN) {
+        } 
+        else if (event->key.keysym.sym == SDLK_RETURN) 
+        {
 
             if(strlen(buffer) + 1 < MAX_INPUT_LENGTH) {
                 strcat(buffer, "\n");
@@ -93,9 +104,11 @@ char* get_input(SDL_Event* event, char buffer[]) {
         }
     }
     // detects string input
-    else if (event->type == SDL_TEXTINPUT) {
+    else if (event->type == SDL_TEXTINPUT) 
+    {
         // Append new text to inputText if it's not full
-        if (strlen(buffer) + strlen(event->text.text) < MAX_INPUT_LENGTH) {
+        if (strlen(buffer) + strlen(event->text.text) < MAX_INPUT_LENGTH) 
+        {
             strcat(buffer, event->text.text);
         }
     }
