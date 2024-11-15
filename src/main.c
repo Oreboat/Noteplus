@@ -4,24 +4,6 @@
 #include "input/input.h"
 #include "common.h"
 
-/* Counts total newlines in `buffer` */
-int newline_counter(char buffer[]) 
-{
-    int i;
-    int newline_count = 0;
-    while (buffer[i] != '\0') 
-    {
-        if(buffer[i] == '\n') 
-        {
-            ++newline_count;
-        }
-
-        ++i;
-    }
-
-    return newline_count;
-}
-
 /* getline() is POSIX-only, so here is a custom version. */
 /* Returns bytes written, 0 on fail.                     */
 size_t get_line(char dest_buf[], const char source_buf[], size_t len, size_t offset)
