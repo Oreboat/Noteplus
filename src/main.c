@@ -55,6 +55,7 @@ int main(int argc, char* argv[])
     
     size_t offset, line_length;
     uint32_t start_time, frame_time;
+    uint8_t save_flag;
     uint32_t render_x, render_y;
     uint32_t newline_count;
     uint32_t font_height;
@@ -77,19 +78,42 @@ int main(int argc, char* argv[])
     /* Buffer to store and check user input */
     char input_text[MAX_INPUT_LENGTH] = "";
     char render_buf[MAX_INPUT_LENGTH] = "";
+    char save_buf[MAX_INPUT_LENGTH] = "";
 
     SDL_Renderer *renderer = get_renderer();
     while (running) 
     {    
         start_time = SDL_GetTicks();
+        save_flag = 0;
 
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0) {
-            if (event.type == SDL_QUIT) {
+            if (event.type == SDL_QUIT) 
+            {
                 running = 0;
             }
+            else if((event.type == SDL_KEYDOWN))
+            {
+                // Check if 'S' key is pressed along with the 'Ctrl' key
+                if (event.key.keysym.sym == SDLK_s && 
+                    (event.key.keysym.mod & KMOD_CTRL)) {
+                    printf("Ctrl + S was pressed!\n");
+                    // Here you can add the action you want for Ctrl + S, like saving
+                    save_flag = 1;
+                }
+            } 
     
+            /* get input unto input_text */
             get_input(&event, input_text);
+
+            if(save_flag == 1)
+            {
+                /* If ctrl + s is hit, this will return a string to be saved to file. */
+                strncpy(save_buf, input_text, MAX_INPUT_LENGTH - 1);
+                save_buf[strlen(input_text)] = '\0';
+                puts(save_buf);
+                goto end;
+            }
 
         }
         
