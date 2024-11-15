@@ -26,9 +26,9 @@ int render_input(const char* text, int x, int y, SDL_Color* color)
     if(strlen(text) == 0) 
     {
         // clears screen if there should be no text
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        SDL_RenderPresent(renderer);
+        //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        //SDL_RenderClear(renderer);
+        //SDL_RenderPresent(renderer);
         return 0;
     }
 
@@ -48,7 +48,7 @@ int render_input(const char* text, int x, int y, SDL_Color* color)
         return 0;
     }
 
-    // Create texture from surface pixels
+    /* Create texture from surface pixels */
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
     if (!text_texture) 
     {
@@ -57,14 +57,14 @@ int render_input(const char* text, int x, int y, SDL_Color* color)
         return 0;
     }
 
-    // Set rendering position and size
+    /* Set rendering position and size */
     SDL_Rect renderQuad = { x, y, text_surface->w, text_surface->h };
 
-    // Render the texture to the screen
+    /* Render the texture to the screen */
     SDL_RenderCopy(renderer, text_texture, NULL, &renderQuad);
     //SDL_RenderPresent(renderer);
 
-    // Free the surface and texture
+    /* Free the surface and texture */
     SDL_FreeSurface(text_surface);
     SDL_DestroyTexture(text_texture);
 
@@ -85,12 +85,12 @@ char* get_input(SDL_Event* event, char buffer[])
         buffer[0] = '\0';
     }
 
-    // detects non-printable keys
+    /* detects non-printable keys */
     if (event->type == SDL_KEYDOWN) {
         if (event->key.keysym.sym == SDLK_BACKSPACE && strlen(buffer) > 0) 
         {
 
-            // Handle backspace: remove the last character
+            /* Handle backspace: remove the last character */
             buffer[strlen(buffer) - 1] = '\0';
             
         } 
@@ -103,10 +103,10 @@ char* get_input(SDL_Event* event, char buffer[])
 
         }
     }
-    // detects string input
+    /* detects string input */
     else if (event->type == SDL_TEXTINPUT) 
     {
-        // Append new text to inputText if it's not full
+        /* Append new text to inputText if it's not full */
         if (strlen(buffer) + strlen(event->text.text) < MAX_INPUT_LENGTH) 
         {
             strcat(buffer, event->text.text);

@@ -94,11 +94,10 @@ int main(int argc, char* argv[])
             }
             else if((event.type == SDL_KEYDOWN))
             {
-                // Check if 'S' key is pressed along with the 'Ctrl' key
+                /* Check if 'S' key is pressed along with the 'Ctrl' key */
                 if (event.key.keysym.sym == SDLK_s && 
                     (event.key.keysym.mod & KMOD_CTRL)) {
                     printf("Ctrl + S was pressed!\n");
-                    // Here you can add the action you want for Ctrl + S, like saving
                     save_flag = 1;
                 }
             } 
@@ -145,7 +144,8 @@ int main(int argc, char* argv[])
         /* Flicker begone!                                                   */
         SDL_RenderPresent(renderer);
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Clear screen
+        /* Clear screen to render info for next frame*/
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
        
         end:
