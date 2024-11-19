@@ -15,29 +15,36 @@
 // Assumes a destination folder 
 // already provided in install for storing note files
 
-// Creates a new note, and opens for editing
-// Default will be in the <notes> folder 
-int new_note(const char* path);
 
-// Opens an existing note from editing
-int open_note(const char* path);
+/*
+*   Loads content from specified file from current working directory into buffer.
+*
+*   This may not be necessary, since input.c uses get_input which seems very similar.
+*/
+char* load_file(const char *filename);
 
-// Saves and closes notes to specified path
-int save_note(const char* path);
+/*
+*   Basic file saving. Takes what is in buffer, writes to a file, then closes the file.
+*/
+int save_file(const char *filename, const char *content);
 
-// Creates an array with multiple notes to keep them organized
-int new_note_set(const char* path);
+/*
+*   Allows opening of an existing file. Currently calls load_file to get content of the file into buffer.
+*   Depending on the applicability of get_input to handle the load_file functionality, this may change.
+*/
+int open_file(const char *filename, char *buffer);
 
-//-------------------------//
-//    MAY NOT BE NEEDED    //
-//-------------------------//
+/*
+*   Clears what is currently in buffer, essentially creating a blank slate.
+*/
+void new_note(char *buffer);
 
-// Saves note set??
-//int save_note_set(const char* path);
-
-//May be out of scope for simple file IO
-//int write_note(const char* path, char input[]);
-
-
-
+/*
+* TODO:
+*   new_note_set
+*   save_note_set
+*   open_note_set
+*
+*   possibly storing files as binary data rather than text for optimizaion
+*/
 #endif

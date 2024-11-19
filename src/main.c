@@ -3,6 +3,7 @@
 #include "window/windowManager.h"
 #include "input/input.h"
 #include "common.h"
+#include "noteio/noteio.h"
 
 /* getline() is POSIX-only, so here is a custom version. */
 /* Returns bytes written, 0 on fail.                     */
@@ -92,7 +93,8 @@ int main(int argc, char* argv[])
                 /* If ctrl + s is hit, this will return a string to be saved to file. */
                 strncpy(save_buf, input_text, MAX_INPUT_LENGTH - 1);
                 save_buf[strlen(input_text)] = '\0';
-                puts(save_buf);
+                save_file("testfile", save_buf);
+                //puts(save_buf);
                 goto end;
             }
 
