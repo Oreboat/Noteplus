@@ -8,7 +8,7 @@ static SDL_Color color  = {
     255,
     255
 };
-
+ 
 int initialize_window(void) 
 {
     int width = 768;
@@ -27,7 +27,7 @@ int initialize_window(void)
         return 0;
     }
 
-    
+
 
     /*
     int info = SDL_GetVideoInfo();

@@ -15,6 +15,8 @@
  */
 int initialize_window(void);
 
+
+
 /**
  * Logically should be called after initialize_window(),
  * otherwise will always return NULL.

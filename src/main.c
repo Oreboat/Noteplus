@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
             {
                 running = 0;
             }
-            else if((event.type == SDL_KEYDOWN))
+            else if(event.type == SDL_KEYDOWN)
             {
                 /* Check if 'S' key is pressed along with the 'Ctrl' key */
                 if (event.key.keysym.sym == SDLK_s && 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
         /* Clear screen if empty input */
         if (strlen(input_text) == 0) 
         {
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_SetRenderDrawColor(renderer, 45, 45, 45, 255);
             SDL_RenderClear(renderer);
             SDL_RenderPresent(renderer);
             goto end;
@@ -110,7 +110,8 @@ int main(int argc, char* argv[])
         /* Render screen one line at a time */
         render_x = 0;
         offset = 0;
-        render_y = 0;
+        // Give room for File/Edit buttons
+        render_y = font_height + 5;
         while (offset < strlen(input_text))
         {
             line_length = get_line(render_buf, input_text, strlen(input_text), offset);
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(renderer);
 
         /* Clear screen to render info for next frame*/
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 45, 45, 45, 255);
         SDL_RenderClear(renderer);
        
         end:
