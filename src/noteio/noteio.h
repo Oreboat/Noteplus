@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../common.h"
 
 // Purpose:
 // 	handle writing to, reading from,
@@ -40,11 +41,22 @@ int open_file(const char *filename, char *buffer);
 void new_note(char *buffer);
 
 /*
-* TODO:
-*   new_note_set
-*   save_note_set
-*   open_note_set
-*
-*   possibly storing files as binary data rather than text for optimizaion
+*   Creates a new noteset under the notes/ directory
 */
+int create_noteset(const char *noteset_name);
+
+/*
+*   Saves the current note to the specified noteset.
+*/
+int save_to_noteset(const char *noteset_name, const char *filename, const char *content);
+
+/*
+*   Simple function that creates another window and SDL_Loop to prompt for a filename for saving
+*/
+char* prompt_filename(const char* message);
+
+/*
+*   Essentially rewritten version of render_input that allows for specification of renderer to use
+*/
+int render_input_to_renderer(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color* color);
 #endif

@@ -93,7 +93,8 @@ int main(int argc, char* argv[])
                 /* If ctrl + s is hit, this will return a string to be saved to file. */
                 strncpy(save_buf, input_text, MAX_INPUT_LENGTH - 1);
                 save_buf[strlen(input_text)] = '\0';
-                save_file("testfile", save_buf);
+                const char *filename = prompt_filename("Enter Filename: ");
+                save_file(filename, save_buf);
                 //puts(save_buf);
                 goto end;
             }
