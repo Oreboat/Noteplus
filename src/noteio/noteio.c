@@ -9,6 +9,17 @@
 
 #define MAX_FILE_SIZE 10000
 
+// Variables used for tracking when a program opens
+// key - app path 
+// value - noteset
+
+#ifdef _WIN32
+    int isUNIX = 1;
+#endif
+int paths_size = 0;
+char *paths[INT16_MAX];
+char *notesets[INT16_MAX];
+
 // Functions
 char* load_file(const char *filename);
 int save_file(const char *filename, const char *content);
@@ -53,19 +64,22 @@ char* load_file(const char *filename) {
 int save_file(const char *filename, const char *content){
 
     const char *notes_dir = "notes/";
+    if (isUNIX == 1) {notes_dir = "notes\\";}
     char filepath[256];
 
     //ensure notes/ exists
     struct stat st = {0};
     if (stat(notes_dir, &st) == -1) {
-        if (mkdir(notes_dir, 0700) != 0) {
-            perror("Failed to create notes directory");
+        if (mkdir(notes_dir) != 0) {
+            perror("piss to create notes directory");
             return -1;
         }
     }
 
     //construct path for file
-    snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, filename);
+
+    snprintf(filepath, sizeof(filepath), "%s%s.txt", notes_dir, filename);
+    printf("path:%s\n", filepath);
 
     FILE *file = fopen(filepath, "w");
     if (file == NULL){
@@ -103,7 +117,7 @@ void new_note(char *buffer) {
     buffer[0] = '\0';
 }
 
-int create_noteset(const char *noteset_name) {
+int create_noteset(const char *noteset_name, const char *app_path) {
     char noteset_path[256];
 
     //construct noteset path
@@ -112,11 +126,15 @@ int create_noteset(const char *noteset_name) {
     //check if noteset is created, if not create it
     struct stat st = {0};
     if (stat(noteset_path, &st) == -1) {
-        if (mkdir(noteset_path, 0700) != 0) {
+        if (mkdir(noteset_path) != 0) {
             perror("Failed to create noteset!");
             return -1;
         }
-
+        //if a path is specified add that path to detectable programs along with the associated noteset
+        if (app_path != NULL) {
+            char* trimmed_path = trim_path(app_path);
+            if (path_cmp(trimmed_path)) {add_path(noteset_name ,trimmed_path);}
+            } 
         printf("Noteset '%s' created successfully.\n", noteset_name);
     }
     else {
@@ -131,7 +149,7 @@ int save_to_noteset(const char *noteset_name, const char *filename, const char *
     snprintf(filepath, sizeof(filepath), "notes/%s/%s", noteset_name, filename);
 
     //check if the noteset exists
-    if (create_noteset(noteset_name) != 0) {
+    if (create_noteset(noteset_name, NULL) != 0) {
         return -1;
     }
     //save the file
@@ -213,6 +231,11 @@ char* prompt_filename(const char* message) {
     SDL_DestroyRenderer(prompt_renderer);
     SDL_DestroyWindow(prompt_window);
 
+
+    //removes the newline '\n' command at the end of the string
+    int str_size = strlen(filename);
+    filename[str_size-1] = '\0';
+
     return filename;
 
 }
@@ -243,4 +266,165 @@ int render_input_to_renderer(SDL_Renderer* renderer, TTF_Font* font, const char*
     SDL_DestroyTexture(text_texture);
 
     return 1;
+}
+
+// ------------------------------ App Detect Handling --------------------------------
+
+int getIndex(const char *key) 
+{ 
+    for (int i = 0; i < paths_size; i++) { 
+        if (strcmp(paths[i], key) == 0) { 
+            return i; 
+        } 
+    } 
+    return -1; // Key not found 
+} 
+
+int path_cmp(const char *app_path){
+    for (int i = 0; i < paths_size; i++){
+        if (strcmp(app_path, paths[i]) == 0) {return 0;}
+    }
+    return 1;
+}
+
+char* trim_path(const char *app_path) {
+    // Trim any spaces around the application name
+    char* exeName = app_path;
+    while (*exeName == ' ') exeName++;  // Skip leading spaces
+    char* end = exeName + strlen(exeName) - 1;
+    while (end > exeName && (*end == ' ' || *end == '\n')) end--;  // Trim trailing spaces
+        
+    // Null-terminate the string after trimming spaces
+    *(end + 1) = '\0';
+
+    return exeName;
+}
+
+int add_path(const char *noteset_name, const char *app_path){
+    int index = getIndex(app_path); 
+    if (index == -1) { // Key not found 
+        strcpy(paths[paths_size], app_path); 
+        notesets[paths_size] = noteset_name; 
+        paths_size++; 
+    } 
+    else { // Key found 
+        notesets[index] = noteset_name; 
+    } 
+
+    save_path_file();
+
+    return 0;
+}
+
+int remove_path(const char *app_path){
+    int index = getIndex(app_path);
+    int offset = 0;
+    char* new_path_arr[INT16_MAX];
+    char* new_noteS_arr[INT16_MAX];
+    for (int i = 0; i < paths_size && offset < paths_size; i++){
+        if (i == index){
+            offset++;
+        }
+        if (offset < paths_size) {
+            new_path_arr[i] = paths[i + offset];
+            new_noteS_arr[i] = notesets[i + offset];
+        }
+    }
+    
+    //set both array to NULL before appending them
+    for (int i = 0; i < paths_size; i++) { paths[i] = '\0';}
+    for (int i = 0; i < paths_size; i++) { notesets[i] = '\0';}
+    paths_size--;
+    for (int i = 0; i < paths_size; i++) {paths[i] = new_path_arr[i];}
+    for (int i = 0; i < paths_size; i++) {notesets[i] = new_noteS_arr[i];}    
+
+    return 0;
+}
+
+int save_path_file(){
+    const char *notes_dir = "notes/";
+    char filepath[256];
+
+    //ensure notes dir exists
+    struct stat st = {0};
+    if (stat(notes_dir, &st) == -1) {
+        if (mkdir(notes_dir) != 0) {
+            perror("Failed to create notes directory");
+            return -1;
+        }
+    }
+
+    // construct content to be written to file
+    char *size;
+    sprintf(size, "%d", paths_size);
+    char *content = size;
+    strcat(content,"\n");
+
+    for (int i = 0; i < paths_size; i++){
+        strcat(content,paths[i]);
+        strcat(content," ");
+    }
+    strcat(content,"\n");
+    for (int i = 0; i < paths_size; i++){
+        strcat(content,notesets[i]);
+        strcat(content," ");
+    }
+
+        //construct path for file
+    snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, "appdetect");
+
+    FILE *file = fopen(filepath, "w+");
+    if (file == NULL){
+        perror("Error opening file for writing");
+        return -1;
+    }
+
+    //write content to file
+    size_t contentLength = strlen(content);
+    size_t bytesWritten = fwrite(content, sizeof(char), contentLength, file);
+    if (bytesWritten != contentLength){
+        perror("Buffer/Write missmatch, could not save.");
+        fclose(file);
+        return -1;
+    }
+
+    fclose(file);
+    printf("appdetect File successfully saved to %s\n", filepath);
+
+    return 0;
+}
+
+int load_path_vars(){
+     FILE *file = fopen("notes/appdetect", "r");
+    if (file == NULL) {
+        perror("Error opening file for reading");
+        return -1;
+    }
+
+    // memory allocation for content of file
+    char *buffer = (char *)malloc(MAX_FILE_SIZE);
+    if (buffer == NULL) {
+        perror("Error allocating memory for file content");
+        fclose(file);
+    }
+
+    // read file into buffer
+    size_t bytesRead = fread(buffer, sizeof(char), MAX_FILE_SIZE - 1, file);
+    if (bytesRead == 0 && ferror(file)) {
+        perror("Error reading file");
+        free(buffer);
+        fclose(file);
+    }
+
+    // Null-terminate buffer
+    buffer[bytesRead] = '\0';
+
+    // Close file and return buffer to pass for rendering
+    fclose(file);
+    
+    //with buffer now read the file will now allocate its contents into its respective variables
+    buffer;
+
+
+    return 0;
 }

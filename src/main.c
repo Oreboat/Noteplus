@@ -4,6 +4,7 @@
 #include "input/input.h"
 #include "common.h"
 #include "noteio/noteio.h"
+#include "appdetect/appdetect.h"
 
 /* getline() is POSIX-only, so here is a custom version. */
 /* Returns bytes written, 0 on fail.                     */
@@ -94,6 +95,7 @@ int main(int argc, char* argv[])
                 strncpy(save_buf, input_text, MAX_INPUT_LENGTH - 1);
                 save_buf[strlen(input_text)] = '\0';
                 const char *filename = prompt_filename("Enter Filename: ");
+                printf("Filename: %s\n", filename);
                 save_file(filename, save_buf);
                 //puts(save_buf);
                 goto end;
