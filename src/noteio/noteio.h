@@ -27,7 +27,7 @@ char* load_file(const char *filename);
 /*
 *   Basic file saving. Takes what is in buffer, writes to a file, then closes the file.
 */
-int save_file(const char *filename, const char *content);
+int save_file(const char *filename, const char *content, int mode);
 
 /*
 *   Allows opening of an existing file. Currently calls load_file to get content of the file into buffer.
@@ -53,7 +53,7 @@ int save_to_noteset(const char *noteset_name, const char *filename, const char *
 /*
 *   Simple function that creates another window and SDL_Loop to prompt for a filename for saving
 */
-char* prompt_filename(const char* message);
+char* prompt_user(const char* message);
 
 /*
 *   Essentially rewritten version of render_input that allows for specification of renderer to use

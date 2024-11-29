@@ -11,9 +11,10 @@
 
 // Functions
 char* load_file(const char *filename);
-int save_file(const char *filename, const char *content);
+int save_file(const char *filename, const char *content, int mode);
 int open_file(const char *filename, char *buffer);
 void new_note(char *buffer);
+char* prompt_user(const char* message);
 
 // load content of file into buffer
 char* load_file(const char *filename) {
@@ -50,60 +51,101 @@ char* load_file(const char *filename) {
 }
 
 //Save current buffer as file
-int save_file(const char *filename, const char *content){
-
-    const char *notes_dir = "notes/";
+int save_file(const char *filename, const char *content, int mode){
+    
     char filepath[256];
-
-    //ensure notes/ exists
     struct stat st = {0};
-    if (stat(notes_dir, &st) == -1) {
-        if (mkdir(notes_dir, 0700) != 0) {
-            perror("Failed to create notes directory");
+
+    /* if directly saving to note directory */
+    if (mode == 1) {
+        const char *notes_dir = "notes/";
+    
+    
+        //ensure notes/ exists
+        if (stat(notes_dir, &st) == -1) {
+            if (mkdir(notes_dir, 0700) != 0) {
+                perror("Failed to create notes directory");
+                return -1;
+            }
+        }
+
+        //construct path for file
+        snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, filename);
+
+        FILE *file = fopen(filepath, "w");
+        if (file == NULL){
+            perror("Error opening file for writing");
             return -1;
         }
-    }
 
-    //construct path for file
-    snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, filename);
+        //write content to file
+        size_t contentLength = strlen(content);
+        size_t bytesWritten = fwrite(content, sizeof(char), contentLength, file);
+        if (bytesWritten != contentLength){
+            perror("Buffer/Write missmatch, could not save.");
+            fclose(file);
+            return -1;
+        }
 
-    FILE *file = fopen(filepath, "w");
-    if (file == NULL){
-        perror("Error opening file for writing");
-        return -1;
-    }
-
-    //write content to file
-    size_t contentLength = strlen(content);
-    size_t bytesWritten = fwrite(content, sizeof(char), contentLength, file);
-    if (bytesWritten != contentLength){
-        perror("Buffer/Write missmatch, could not save.");
         fclose(file);
-        return -1;
+        printf("File successfully saved to %s\n", filepath);
+        return 0;
     }
 
-    fclose(file);
-    printf("File successfully saved to %s\n", filepath);
-    return 0;
+    /* if called by save to noteset*/
+    if (mode == 2) {
+        const char *notes_dir = "notes/notesets/";
+
+        //ensure notes/notesets/ exists
+        if (stat(notes_dir, &st) == -1) {
+            if (mkdir(notes_dir, 0700) != 0) {
+                perror("Failed to create notesets directory");
+                return -1;
+            }
+        }
+
+        snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, filename);
+
+        FILE *file = fopen(filepath, "w");
+        if (file == NULL){
+            printf("%s\n", filepath);
+            perror("Error opening file for writing");
+            return -1;
+        }
+
+        //write content to file
+        size_t contentLength = strlen(content);
+        size_t bytesWritten = fwrite(content, sizeof(char), contentLength, file);
+        if (bytesWritten != contentLength){
+            perror("Buffer/Write missmatch, could not save.");
+            fclose(file);
+            return -1;
+        }
+
+        fclose(file);
+        printf("File successfully saved to %s\n", filepath);
+        return 0;
+    }
 }
 
 //Open note
-int open_note(const char *filename, char *buffer){
+char* open_note(const char *filename, char *buffer){
     char *file_content = load_file(filename);
     if (file_content != NULL) {
         strncpy(buffer, file_content, MAX_FILE_SIZE -1);
         free(file_content);
         return 0;
     }
-    return -1;
+    return buffer;
 }
 
 // clear text buffer, creating blank slate (new note)
 void new_note(char *buffer) {
+    //save current file first
     buffer[0] = '\0';
 }
 
-int create_noteset(const char *noteset_name) {
+/*int create_noteset(const char *noteset_name) {
     char noteset_path[256];
 
     //construct noteset path
@@ -124,21 +166,27 @@ int create_noteset(const char *noteset_name) {
     }
     return 0; 
 }
-
+*/
 int save_to_noteset(const char *noteset_name, const char *filename, const char *content){
     char filepath[512];
+    struct stat st = {0};
     //construct filepath to save to
-    snprintf(filepath, sizeof(filepath), "notes/%s/%s", noteset_name, filename);
-
-    //check if the noteset exists
-    if (create_noteset(noteset_name) != 0) {
-        return -1;
+    snprintf(filepath, sizeof(filepath), "notes/notesets/");
+    if (stat(filepath, &st) == -1) {
+        if (mkdir(filepath, 0700) != 0) {
+            perror("Failed to create notes directory");
+            return -1;
+        }
     }
+    snprintf(filepath, sizeof(filepath), "notes/notesets/%s", noteset_name);
+    strcat(filepath, filename);
+    //snprintf(filepath, sizeof(filepath), "%s", filename);
     //save the file
-    return save_file(filepath, content);
+    save_file(filepath, content, 2);
+    return 0;
 }
 
-char* prompt_filename(const char* message) {
+char* prompt_user(const char* message) {
     static char filename[MAX_INPUT_LENGTH] = "";
     char render_buf[MAX_INPUT_LENGTH] = "";
     SDL_Event event;
@@ -204,6 +252,9 @@ char* prompt_filename(const char* message) {
             get_input(&event, filename);
 
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) {
+                if(strlen(filename) > 0 && filename[strlen(filename) -1] == '\n') {
+                    filename[strlen(filename) - 1] = '\0';
+                }
                 running = 0;
             }
         }
@@ -217,7 +268,7 @@ char* prompt_filename(const char* message) {
 
 }
 
-//forces usage of prompt render
+//input rendering for secondary renderere
 int render_input_to_renderer(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color* color) {
     if (!renderer || !font || !text || !color) {
         fprintf(stderr, "Invalid arguments for rendering input.\n");

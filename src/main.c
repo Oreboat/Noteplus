@@ -39,6 +39,9 @@ int main(int argc, char* argv[])
     size_t offset, line_length;
     uint32_t start_time, frame_time;
     uint8_t save_flag;
+    uint8_t new_flag;
+    uint8_t create_set_flag;
+    uint8_t save_to_set_flag;
     uint32_t render_x, render_y;
     uint32_t newline_count;
     uint32_t font_height;
@@ -62,12 +65,16 @@ int main(int argc, char* argv[])
     char input_text[MAX_INPUT_LENGTH] = "";
     char render_buf[MAX_INPUT_LENGTH] = "";
     char save_buf[MAX_INPUT_LENGTH] = "";
-
+    const char *filename;
+    const char *notesetName;
     SDL_Renderer *renderer = get_renderer();
     while (running) 
     {    
         start_time = SDL_GetTicks();
         save_flag = 0;
+        new_flag = 0;
+        save_to_set_flag = 0;
+    
 
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0) {
@@ -77,29 +84,89 @@ int main(int argc, char* argv[])
             }
             else if(event.type == SDL_KEYDOWN)
             {
-                /* Check if 'S' key is pressed along with the 'Ctrl' key */
+                /* Check if CTRL+SHIFT+N is pressed for new note set*/
+                if (event.key.keysym.sym == SDLK_n && 
+                (event.key.keysym.mod & KMOD_CTRL) && 
+                (event.key.keysym.mod & KMOD_SHIFT)) {
+                    printf("Ctrl + Shift + N was pressed!\n");
+                    create_set_flag = 1;
+                }
+                
+                /* Check if CTRL+SHIFT+S is pressed for save current note to note set*/
+                if (event.key.keysym.sym == SDLK_s &&
+                (event.key.keysym.mod & KMOD_CTRL) &&
+                (event.key.keysym.mod & KMOD_SHIFT)) {
+                    printf("Ctrl+ Shift + S was pressed!\n");
+                    save_to_set_flag = 1;
+                }
+                
+                /* Check if CRTL+S is pressed for save current note */
                 if (event.key.keysym.sym == SDLK_s && 
-                    (event.key.keysym.mod & KMOD_CTRL)) {
+                    (event.key.keysym.mod & KMOD_CTRL) 
+                    && !(event.key.keysym.mod & KMOD_SHIFT)) {
                     printf("Ctrl + S was pressed!\n");
                     save_flag = 1;
                 }
+
+                /*Check if CTRL+N is pressed for new note*/
+                if (event.key.keysym.sym == SDLK_n &&
+                    (event.key.keysym.mod & KMOD_CTRL) &&
+                    !(event.key.keysym.mod & KMOD_SHIFT)) {
+                    printf("Ctrl + N was pressed!\n");
+                    new_flag = 1;
+                }
+                
             } 
     
             /* get input unto input_text */
             get_input(&event, input_text);
-
-            if(save_flag == 1)
-            {
-                /* If ctrl + s is hit, this will return a string to be saved to file. */
-                strncpy(save_buf, input_text, MAX_INPUT_LENGTH - 1);
-                save_buf[strlen(input_text)] = '\0';
-                const char *filename = prompt_filename("Enter Filename: ");
-                save_file(filename, save_buf);
-                //puts(save_buf);
-                goto end;
+        }
+        
+        if(save_flag || save_to_set_flag)
+        {
+            if (save_to_set_flag) {
+                notesetName = prompt_user("Enter Noteset Name: ");
+                filename = prompt_user("Enter filename: ");
+                save_to_noteset(notesetName, filename, input_text);
+                printf("Note (%s) successfully saved to Noteset (%s)", filename, notesetName);
+                save_to_set_flag = 0;
+            }
+            else {
+                filename = prompt_user("Enter Filename: ");
+                if (filename && filename[0] != '\0') {
+                    save_file(filename, input_text, 1);
+                    printf("File saved successfully as: %s\n", filename);
+                }
+                save_flag = 0;
             }
 
+            SDL_StopTextInput();
+            SDL_StartTextInput();
+
         }
+
+        if (new_flag) {
+            if (strlen(input_text) > 0) {
+                //prompt for filename
+                filename = prompt_user("Enter Filename: ");
+                //save
+                if (filename && filename[0] != '\0') {
+                    save_file(filename, input_text, 1);
+                    //clear buffer
+                    new_note(input_text);
+                }
+            }
+            else {new_note(input_text);}
+            
+            new_flag = 0;
+            continue;
+        }
+/*
+        if (create_set_flag){
+
+        }
+*/
+    
         
         /* Clear screen if empty input */
         if (strlen(input_text) == 0) 
