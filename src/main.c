@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
     uint32_t start_time, frame_time;
     uint8_t save_flag;
     uint8_t new_flag;
+    uint8_t open_flag;
     uint8_t create_set_flag;
     uint8_t save_to_set_flag;
     uint32_t render_x, render_y;
@@ -115,6 +116,13 @@ int main(int argc, char* argv[])
                     printf("Ctrl + N was pressed!\n");
                     new_flag = 1;
                 }
+
+                if (event.key.keysym.sym == SDLK_o &&
+                    (event.key.keysym.mod & KMOD_CTRL) &&
+                    !(event.key.keysym.mod & KMOD_SHIFT)) {
+                    printf("Ctrl + O was pressed!\n");
+                    open_flag = 1;
+                }
                 
             } 
     
@@ -126,9 +134,16 @@ int main(int argc, char* argv[])
         {
             if (save_to_set_flag) {
                 notesetName = prompt_user("Enter Noteset Name: ");
+                printf("Noteset: %s\n", notesetName);
                 filename = prompt_user("Enter filename: ");
-                save_to_noteset(notesetName, filename, input_text);
-                printf("Note (%s) successfully saved to Noteset (%s)", filename, notesetName);
+                printf("Filename: %s\n", filename);
+                printf("Testing if Noteset is changed: %s\n", notesetName);
+                if (notesetName && filename) {
+                    save_to_noteset(notesetName, filename, input_text);
+                    printf("Note (%s) successfully saved to Noteset (%s)", filename, notesetName);
+                }
+                free((char*)notesetName);
+                free((char*)filename);
                 save_to_set_flag = 0;
             }
             else {
@@ -137,6 +152,7 @@ int main(int argc, char* argv[])
                     save_file(filename, input_text, 1);
                     printf("File saved successfully as: %s\n", filename);
                 }
+                free((char*)filename);
                 save_flag = 0;
             }
 
@@ -159,7 +175,19 @@ int main(int argc, char* argv[])
             else {new_note(input_text);}
             
             new_flag = 0;
+            SDL_StopTextInput();
+            SDL_StartTextInput();
             continue;
+        }
+
+        if (open_flag) {
+            filename = prompt_user("Enter filename to open: ");
+            open_note(filename, input_text);
+            
+            SDL_StopTextInput();
+            SDL_StartTextInput();
+
+            open_flag = 0;
         }
 /*
         if (create_set_flag){

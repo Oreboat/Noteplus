@@ -5,6 +5,7 @@
 #include <string.h>
 #include "../common.h"
 
+
 // Purpose:
 // 	handle writing to, reading from,
 // 	saving, and deleting files
@@ -33,7 +34,7 @@ int save_file(const char *filename, const char *content, int mode);
 *   Allows opening of an existing file. Currently calls load_file to get content of the file into buffer.
 *   Depending on the applicability of get_input to handle the load_file functionality, this may change.
 */
-int open_file(const char *filename, char *buffer);
+int open_note(const char *filename, char *buffer);
 
 /*
 *   Clears what is currently in buffer, essentially creating a blank slate.
