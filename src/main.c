@@ -4,6 +4,7 @@
 #include "input/input.h"
 #include "common.h"
 #include "noteio/noteio.h"
+#include "appdetect/appdetect.h"
 
 /* getline() is POSIX-only, so here is a custom version. */
 /* Returns bytes written, 0 on fail.                     */
@@ -173,6 +174,7 @@ int main(int argc, char* argv[])
                 save_flag = 0;
             }
 
+
             SDL_StopTextInput();
             SDL_StartTextInput();
 
@@ -188,6 +190,18 @@ int main(int argc, char* argv[])
                     //clear buffer
                     new_note(input_text, MAX_INPUT_LENGTH);
                 }
+
+            if(save_flag == 1)
+            {
+                /* If ctrl + s is hit, this will return a string to be saved to file. */
+                strncpy(save_buf, input_text, MAX_INPUT_LENGTH - 1);
+                save_buf[strlen(input_text)] = '\0';
+                const char *filename = prompt_filename("Enter Filename: ");
+                printf("Filename: %s\n", filename);
+                save_file(filename, save_buf);
+                //puts(save_buf);
+                goto end;
+
             }
             else {new_note(input_text, MAX_INPUT_LENGTH);}
             
