@@ -13,6 +13,7 @@
     -Mode 1: This is for saving a note in the notes/ directory
     -Mode 2: Specifically for saving a note to a specific noteset
 
+
     -The function takes filename, content buffer, and mode.
     -Contructs the path for the current note, opens the file and loads the content of the content buffer
     into the file using fwrite.
@@ -28,6 +29,12 @@ int save_file(const char *filename, const char *content, int mode);
     -Takes the notes_dir path, desired file, content buffer, and the size of the buffer for memory safety
     -Contructs the proper filepath for opening, then calls the load_file function to load contents of the file into
     a rendering buffer to be displayed.
+
+/*
+*   Loads content from specified file from current working directory into buffer.
+*
+*   This may not be necessary, since input.c uses get_input which seems very similar.
+
 */
 int open_note(const char *notes_dir, const char *filename, char *buffer, size_t buffer_size);
 
@@ -58,14 +65,23 @@ int save_to_noteset(const char *noteset_name, const char *filename, const char *
     -using an open directory, populates a lis of files within the noteset and passes that list as a message to prompt user.
     Using the user input, open the selected file
 */
+
 int open_noteset(const char *notes_dir, const char *noteset_name, char *buffer, size_t buffer_size);
+
+
+int create_noteset(const char *noteset_name, const char *app_path);
 
 
 /*
     -Function that opens the filepath and reads the bytes into a buffer
     -returns the buffer for use in other functions
 */
+
 char* load_file(const char *filepath);
+
+
+int save_to_noteset(const char *noteset_name, const char *filename, const char *content);
+
 
 /*
     Main user input function
@@ -79,4 +95,45 @@ char* prompt_user(const char* message);
     for the prompt user function.
 */
 int render_input_to_renderer(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color* color);
+
+// ------------------------------ App Detect Handling --------------------------------
+
+int getIndex(const char key[]);
+
+char* trim_path(const char *app_path);
+/*
+* trims the path string down for easier detection and storage
+*/
+
+int path_cmp(const char *app_path);
+/*
+* compares the path to the variables in the paths variables
+* returns 0 if theres a match
+*/
+
+int save_path_file();
+/*
+* saves all stored path variables to a file
+* Path files are formatted
+* line 1 - how mamy paths are saved
+* line 2 - app names (seperated by a space)
+* line 3 - program names (seperated by a space)
+*/
+
+int load_path_vars();
+/*
+* loads all stored path variables to a file
+*/
+
+int add_path(const char *noteset_name, const char *app_path);
+/*
+* adds that path to the list of strings along with the noteset that opens with it
+*/
+
+int remove_path(const char *app_path);
+/*
+* removes the specified path. used when deleting a noteset
+*/
+
+char* unix_path_convert(char *string);
 #endif

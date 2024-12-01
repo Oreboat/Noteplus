@@ -57,42 +57,34 @@ int detectProcess(const char* apps[], int appCount){
 
 
 
-int main(int argc, char* argv[]) {
-    char path[MAX_PATH];
-    printf("Enter the path of the executable(s) (e.g., Notepad.exe, firefox.exe): ");
-    fgets(path, sizeof(path), stdin);
-    path[strcspn(path, "\n")] = 0;  // Remove the newline character
+// int main(int argc, char* argv[]) {
+//     char path[MAX_PATH];
+//     printf("Enter the path of the executable(s) (e.g., Notepad.exe, firefox.exe): ");
+//     fgets(path, sizeof(path), stdin);
+//     path[strcspn(path, "\n")] = 0;  // Remove the newline character
     
-    // Split the input into multiple application names
-    char* token = strtok(path, ",");
-    char* apps[10];  // Array to hold up to 10 app names
-    int appCount = 0;
+//     // Split the input into multiple application names
+//     char* token = strtok(path, ",");
+//     char* apps[10];  // Array to hold up to 10 app names
+//     int appCount = 0;
 
-    while (token != NULL && appCount < 10) {
-        // Trim any spaces around the application name
-        char* exeName = token;
-        while (*exeName == ' ') exeName++;  // Skip leading spaces
-        char* end = exeName + strlen(exeName) - 1;
-        while (end > exeName && (*end == ' ' || *end == '\n')) end--;  // Trim trailing spaces
-        
-        // Null-terminate the string after trimming spaces
-        *(end + 1) = '\0';
+//     while (token != NULL && appCount < 10) {
 
-        // Add the application name to the array
-        apps[appCount++] = exeName;
+//         // Add the application name to the array
+//         apps[appCount++] = exeName;
 
-        // Get the next token
-        token = strtok(NULL, ",");
-    }
+//         // Get the next token
+//         token = strtok(NULL, ",");
+//     }
 
-    // Display the detected applications
-    printf("Detecting the following programs:\n");
-    for (int i = 0; i < appCount; i++) {
-        printf(" - %s\n", apps[i]);
-    }
+//     // Display the detected applications
+//     printf("Detecting the following programs:\n");
+//     for (int i = 0; i < appCount; i++) {
+//         printf(" - %s\n", apps[i]);
+//     }
 
-    // Detect if any of the specified applications are running
-    detectProcess(apps, appCount);
+//     // Detect if any of the specified applications are running
+//     detectProcess(apps, appCount);
 
-    return 0;
-}
+//     return 0;
+// }
