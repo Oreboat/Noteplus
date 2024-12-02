@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     TTF_Font* font;
 
     char* detected_noteset[256];
-    uint32_t detect_downtime = 1000;
+    uint32_t detect_downtime = 500;
     uint32_t detect_frame = 0;
     char* current_noteset;
 
