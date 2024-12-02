@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
+#include "../include/dirent/dirent-1.23.1/include/dirent.h"
 #include "../input/input.h"
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <errno.h>
+/* Written by Kenyon Tiner */
 
 #define MAX_FILE_SIZE 10000
 
@@ -21,100 +23,106 @@ char *paths[INT16_MAX];
 char *notesets[INT16_MAX];
 
 // Functions
-char* load_file(const char *filename);
-int save_file(const char *filename, const char *content);
-int open_file(const char *filename, char *buffer);
-void new_note(char *buffer);
+// char* load_file(const char *filename);
+// int save_file(const char *filename, const char *content);
+// int open_file(const char *filename, char *buffer);
+// void new_note(char *buffer);
 
 // load content of file into buffer
-char* load_file(const char *filename) {
-
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        perror("Error opening file for reading");
-        return NULL;
-    }
-
-    // memory allocation for content of file
-    char *buffer = (char *)malloc(MAX_FILE_SIZE);
-    if (buffer == NULL) {
-        perror("Error allocating memory for file content");
-        fclose(file);
-        return NULL;
-    }
-
-    // read file into buffer
-    size_t bytesRead = fread(buffer, sizeof(char), MAX_FILE_SIZE - 1, file);
-    if (bytesRead == 0 && ferror(file)) {
-        perror("Error reading file");
-        free(buffer);
-        fclose(file);
-        return NULL;
-    }
-
-    // Null-terminate buffer
-    buffer[bytesRead] = '\0';
-
-    // Close file and return buffer to pass for rendering
-    fclose(file);
-    return buffer;
-}
-
-//Save current buffer as file
-int save_file(const char *filename, const char *content){
-
-    const char *notes_dir = "notes/";
-    if (isUNIX == 1) {notes_dir = "notes\\";}
+int save_file(const char *filename, const char *content, int mode){
+    
     char filepath[256];
-
-    //ensure notes/ exists
     struct stat st = {0};
-    if (stat(notes_dir, &st) == -1) {
-        if (mkdir(notes_dir) != 0) {
-            perror("piss to create notes directory");
+
+    /* if directly saving to note directory */
+    if (mode == 1) {
+        const char *notes_dir = "notes/";
+    
+    
+        //ensure notes/ exists
+        if (stat(notes_dir, &st) == -1) {
+            if (mkdir(notes_dir) != 0) {
+                perror("Failed to create notes directory");
+                return -1;
+            }
+        }
+
+        //construct path for file
+        snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, filename);
+
+        FILE *file = fopen(filepath, "w+");
+        if (file == NULL){
+            perror("Error opening file for writing");
             return -1;
         }
-    }
 
-    //construct path for file
+        //write content to file
+        size_t contentLength = strlen(content);
+        size_t bytesWritten = fwrite(content, sizeof(char), contentLength, file);
+        if (bytesWritten != contentLength){
+            perror("Buffer/Write missmatch, could not save.");
+            fclose(file);
+            return -1;
+        }
 
-    snprintf(filepath, sizeof(filepath), "%s%s.txt", notes_dir, filename);
-    printf("path:%s\n", filepath);
-
-    FILE *file = fopen(filepath, "w");
-    if (file == NULL){
-        perror("Error opening file for writing");
-        return -1;
-    }
-
-    //write content to file
-    size_t contentLength = strlen(content);
-    size_t bytesWritten = fwrite(content, sizeof(char), contentLength, file);
-    if (bytesWritten != contentLength){
-        perror("Buffer/Write missmatch, could not save.");
         fclose(file);
-        return -1;
-    }
-
-    fclose(file);
-    printf("File successfully saved to %s\n", filepath);
-    return 0;
-}
-
-//Open note
-int open_note(const char *filename, char *buffer){
-    char *file_content = load_file(filename);
-    if (file_content != NULL) {
-        strncpy(buffer, file_content, MAX_FILE_SIZE -1);
-        free(file_content);
+        printf("File successfully saved to %s\n", filepath);
         return 0;
     }
-    return -1;
+
+    /* if called by save to noteset*/
+    if (mode == 2) {
+        const char *notes_dir = "";
+
+        snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, filename);
+
+        FILE *file = fopen(filepath, "w+");
+        if (file == NULL){
+            perror("Error opening file for writing");
+            return -1;
+        }
+
+        //write content to file
+        size_t contentLength = strlen(content);
+        size_t bytesWritten = fwrite(content, sizeof(char), contentLength, file);
+        if (bytesWritten != contentLength){
+            perror("Buffer/Write missmatch, could not save.");
+            fclose(file);
+            return -1;
+        }
+
+        fclose(file);
+        printf("File successfully saved to %s\n", filepath);
+        return 0;
+    }
 }
 
-// clear text buffer, creating blank slate (new note)
-void new_note(char *buffer) {
-    buffer[0] = '\0';
+int open_note(const char *notes_dir, const char *filename, char *buffer, size_t buffer_size) {
+    if (notes_dir == NULL || filename == NULL || buffer == NULL) {
+        fprintf(stderr, "Invalid arguments to open_note\n");
+        return -1;
+    }
+
+    char filepath[MAX_FILE_SIZE];
+    snprintf(filepath, sizeof(filepath), "%s/%s", notes_dir, filename);
+
+    char *file_content = load_file(filepath);
+    if (file_content == NULL) {
+        return -1;  // Error already logged by load_file
+    }
+
+    // Copy file content to the provided buffer
+    strncpy(buffer, file_content, buffer_size - 1);
+    buffer[buffer_size - 1] = '\0';  // Ensure null-termination
+
+    free(file_content);
+    return 0;  // Success
+}
+
+void new_note(char *buffer, size_t buffer_size) {
+   if (buffer != NULL) {
+        memset(buffer, 0, buffer_size);  // Safely clear the entire buffer
+    }
 }
 
 int create_noteset(const char *noteset_name, const char *app_path) {
@@ -126,6 +134,9 @@ int create_noteset(const char *noteset_name, const char *app_path) {
     //check if noteset is created, if not create it
     struct stat st = {0};
     if (stat(noteset_path, &st) == -1) {
+        if (mkdir("notes/notesets") != 0) {
+            printf("Noteset File Exists!\n");
+        }
         if (mkdir(noteset_path) != 0) {
             perror("Failed to create noteset!");
             return -1;
@@ -145,29 +156,162 @@ int create_noteset(const char *noteset_name, const char *app_path) {
 
 int save_to_noteset(const char *noteset_name, const char *filename, const char *content){
     char filepath[512];
-    //construct filepath to save to
-    snprintf(filepath, sizeof(filepath), "notes/%s/%s", noteset_name, filename);
+    struct stat st = {0};
+    
+    if(stat("notes", &st) == -1) {
+        if (mkdir("notes") != 0 && errno != EEXIST) {
+            perror("Failed to create notes directory");
+            return -1;
+        }
+    }
+    else if (!S_ISDIR(st.st_mode)) {
+        fprintf(stderr, "'notes' exists but is not a directory");
+    }
 
+    
+    if (stat("notes/notesets", &st) == -1) {
+        if (mkdir("notes/notesets") != 0 && errno != EEXIST) {
+            perror("Failed to create notes/notesets directory");
+            return -1;
+        }
+    }
+    else if (!S_ISDIR(st.st_mode)) {
+        fprintf(stderr, "'notes/notesets' exists but is not a directory");
+    }
+    
     //check if the noteset exists
     if (create_noteset(noteset_name, NULL) != 0) {
         return -1;
     }
+
+    snprintf(filepath, sizeof(filepath), "notes/notesets/%s", noteset_name);
+    if (stat(filepath, &st) == -1) {
+        if (mkdir(filepath) != 0 && errno != EEXIST) {
+            perror("Failed to create noteset directory");
+            return -1;
+        }
+    }
+    else if (!S_ISDIR(st.st_mode)) {
+        fprintf(stderr, "'%s' exists but is not a directory", filepath);
+    }
+
+    strncat(filepath, "/", sizeof(filepath) - strlen(filepath) - 1);
+    strncat(filepath, filename, sizeof(filepath) - strlen(filepath) - 1);
+    
     //save the file
-    return save_file(filepath, content);
+    save_file(filepath, content, 2);
+    return 0;
 }
 
-char* prompt_filename(const char* message) {
-    static char filename[MAX_INPUT_LENGTH] = "";
-    char render_buf[MAX_INPUT_LENGTH] = "";
+int open_noteset(const char *notes_dir, const char *noteset_name, char *buffer, size_t buffer_size) {
+    if (notes_dir == NULL || noteset_name == NULL || buffer == NULL) {
+        fprintf(stderr, "Invalid arguments to open_noteset\n");
+        return -1;
+    }
+
+    // Construct the path to the noteset directory
+    char noteset_path[MAX_FILE_SIZE];
+    snprintf(noteset_path, sizeof(noteset_path), "%s/notesets/%s", notes_dir, noteset_name);
+
+    // Open the directory containing the noteset files
+    DIR *dir = opendir(noteset_path);
+    if (dir == NULL) {
+        fprintf(stderr, "Failed to open noteset directory: %s\n", strerror(errno));
+        return -1;
+    }
+
+    // Prepare an array to hold file names
+    char *file_names[10];  
+    int file_count = 0;
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        // Skip directories (.) and (..)
+        if (entry->d_type == DT_REG) {
+            file_names[file_count] = strdup(entry->d_name);
+            file_count++;
+            if (file_count >= 10) break;  // Avoid buffer overflow
+        }
+    }
+    closedir(dir);
+
+    // Display the list of files for the user to choose from
+    char message[MAX_INPUT_LENGTH * 10] = "Enter the number of the note to open:\n";
+    for (int i = 0; i < file_count; i++) {
+        snprintf(message + strlen(message), sizeof(message) - strlen(message), "%d. %s\n", i + 1, file_names[i]);
+    }
+
+    // Get the user's choice via prompt_user
+    char *input = prompt_user(message);
+    if (input == NULL) {
+        fprintf(stderr, "Failed to get user input.\n");
+        return -1;
+    }
+
+    // Parse user input to select the file
+    int selected_file = atoi(input) - 1;
+    free(input);  // Free the dynamically allocated string returned by prompt_user
+
+    if (selected_file < 0 || selected_file >= file_count) {
+        fprintf(stderr, "Invalid selection.\n");
+        return -1;
+    }
+
+    // Open the selected file
+    if (open_note(noteset_path, file_names[selected_file], buffer, buffer_size) != 0) {
+        fprintf(stderr, "Failed to open note.\n");
+        return -1;
+    }
+
+    // Clean up
+    for (int i = 0; i < file_count; i++) {
+        free(file_names[i]);
+    }
+
+    return 0;  // Success
+}
+
+char *load_file(const char *filepath) {
+    FILE *file = fopen(filepath, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Error opening file %s: %s\n", filepath, strerror(errno));
+        return NULL;
+    }
+
+    // Allocate memory for file content
+    char *content = (char *)malloc(MAX_FILE_SIZE);
+    if (content == NULL) {
+        fprintf(stderr, "Error allocating memory for file content\n");
+        fclose(file);
+        return NULL;
+    }
+
+    // Read file into the buffer
+    size_t bytesRead = fread(content, 1, MAX_FILE_SIZE - 1, file);
+    if (ferror(file)) {
+        fprintf(stderr, "Error reading file %s\n", filepath);
+        free(content);
+        fclose(file);
+        return NULL;
+    }
+
+    content[bytesRead] = '\0';  // Null-terminate the string
+    fclose(file);
+    return content;
+}
+
+char* prompt_user(const char* message) {
+    static char input_buffer[MAX_INPUT_LENGTH] = "";
+    char render_buf[MAX_INPUT_LENGTH * 10] = "";
     SDL_Event event;
     uint8_t running = 1;
 
     //create small pop up window for the prompt
     SDL_Window* prompt_window = SDL_CreateWindow(
-        "Save File", 
+        "Input Needed!", 
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED, 
-        400, 200, SDL_WINDOW_SHOWN
+        400, 400, SDL_WINDOW_SHOWN
     );
     if (!prompt_window) {
         fprintf(stderr, "Failed to create prompt window: %s\n", SDL_GetError());
@@ -184,7 +328,6 @@ char* prompt_filename(const char* message) {
 
     //start text
     SDL_StartTextInput();
-
     TTF_Font* font = get_font();
     if(!font){
         fprintf(stderr, "Font not initialized.\n");
@@ -206,7 +349,7 @@ char* prompt_filename(const char* message) {
         }
 
         //get input for rendering
-        snprintf(render_buf, sizeof(render_buf), "->%s", filename);
+        snprintf(render_buf, sizeof(render_buf), "->%s", input_buffer);
         if (!render_input_to_renderer(prompt_renderer, font, render_buf, 10, 10 + font_height + 5, &color)) {
             fprintf(stderr, "Failed to render filename");
         }
@@ -219,7 +362,7 @@ char* prompt_filename(const char* message) {
                 break;
             }
 
-            get_input(&event, filename);
+            get_input(&event, input_buffer);
 
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) {
                 running = 0;
@@ -232,15 +375,18 @@ char* prompt_filename(const char* message) {
     SDL_DestroyWindow(prompt_window);
 
 
-    //removes the newline '\n' command at the end of the string
-    int str_size = strlen(filename);
-    filename[str_size-1] = '\0';
+    size_t length = strlen(input_buffer);
+    if (length > 0 && input_buffer[length - 1] == '\n') {
+        input_buffer[length - 1] = '\0';
+    }
 
-    return filename;
-
+    char* result = malloc(strlen(input_buffer) + 1);
+    if(result) {
+        strcpy(result, input_buffer);
+    }
+    return result;
 }
 
-//forces usage of prompt render
 int render_input_to_renderer(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color* color) {
     if (!renderer || !font || !text || !color) {
         fprintf(stderr, "Invalid arguments for rendering input.\n");
@@ -282,7 +428,10 @@ int getIndex(const char *key)
 
 int path_cmp(const char *app_path){
     for (int i = 0; i < paths_size; i++){
-        if (strcmp(app_path, paths[i]) == 0) {return 0;}
+        if (strcmp(app_path, paths[i]) == 0) {
+            printf("path already exists!\n");
+            return 0;
+            }
     }
     return 1;
 }
@@ -303,14 +452,16 @@ char* trim_path(const char *app_path) {
 int add_path(const char *noteset_name, const char *app_path){
     int index = getIndex(app_path); 
     if (index == -1) { // Key not found 
-        strcpy(paths[paths_size], app_path); 
+        
+        printf("%s\n",app_path);
+        paths[paths_size] = app_path; 
         notesets[paths_size] = noteset_name; 
         paths_size++; 
     } 
     else { // Key found 
         notesets[index] = noteset_name; 
     } 
-
+    
     save_path_file();
 
     return 0;
@@ -355,11 +506,9 @@ int save_path_file(){
     }
 
     // construct content to be written to file
-    char *size;
-    sprintf(size, "%d", paths_size);
-    char *content = size;
+    char content[256];
+    snprintf(content, sizeof(content), "%d", paths_size);
     strcat(content,"\n");
-
     for (int i = 0; i < paths_size; i++){
         strcat(content,paths[i]);
         strcat(content," ");
@@ -370,7 +519,7 @@ int save_path_file(){
         strcat(content," ");
     }
 
-        //construct path for file
+    //construct path for file
     snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, "appdetect");
 
     FILE *file = fopen(filepath, "w+");
@@ -394,37 +543,73 @@ int save_path_file(){
     return 0;
 }
 
-int load_path_vars(){
-     FILE *file = fopen("notes/appdetect", "r");
+int load_path_vars() { struct stat st = {0};
+    const char *notes_dir = "notes/";
+
+    // Ensure notes/ directory exists
+    if (stat(notes_dir, &st) == -1) {
+        if (mkdir(notes_dir) != 0) {
+            perror("Failed to create notes directory");
+            return -1;
+        }
+    }
+
+    FILE *file = fopen("notes/appdetect", "r");
     if (file == NULL) {
-        perror("Error opening file for reading");
+        printf("appdetect file doesn't exist\n");
         return -1;
     }
 
-    // memory allocation for content of file
-    char *buffer = (char *)malloc(MAX_FILE_SIZE);
-    if (buffer == NULL) {
-        perror("Error allocating memory for file content");
+    // Read the first line: number of notesets
+    if (fscanf(file, "%d\n", &paths_size) != 1) {
+        printf("Error reading number of notesets\n");
         fclose(file);
+        return -1;
     }
 
-    // read file into buffer
-    size_t bytesRead = fread(buffer, sizeof(char), MAX_FILE_SIZE - 1, file);
-    if (bytesRead == 0 && ferror(file)) {
-        perror("Error reading file");
-        free(buffer);
-        fclose(file);
+    // Read the second line: paths of the notesets
+    char pathBuffer[256];
+    for (int i = 0; i < paths_size; i++) {
+        if (fscanf(file, "%s", pathBuffer) != 1) {
+            printf("Error reading path for noteset %d\n", i);
+            fclose(file);
+            return -1;
+        }
+        paths[i] = strdup(pathBuffer);  // Copy path string
     }
 
-    // Null-terminate buffer
-    buffer[bytesRead] = '\0';
+    // Read the third line: names of the notesets
+    char nameBuffer[256];
+    for (int i = 0; i < paths_size; i++) {
+        if (fscanf(file, "%s", nameBuffer) != 1) {
+            printf("Error reading name for noteset %d\n", i);
+            fclose(file);
+            return -1;
+        }
+        notesets[i] = strdup(nameBuffer);  // Copy name string
+    }
 
-    // Close file and return buffer to pass for rendering
+    // Successfully read and stored all note set data
     fclose(file);
-    
-    //with buffer now read the file will now allocate its contents into its respective variables
-    buffer;
 
+    // Output loaded data (for verification)
+    printf("Loaded %d notesets:\n", paths_size);
+    for (int i = 0; i < paths_size; i++) {
+        printf("Noteset %d: Path = %s, Name = %s\n", i + 1, paths[i], notesets[i]);
+    }
 
     return 0;
 }
+
+char** get_paths(void){
+    return paths;
+}
+
+char** get_sets(void){
+    return notesets;
+}
+
+int get_app_count(void){
+    return paths_size;
+}
+
