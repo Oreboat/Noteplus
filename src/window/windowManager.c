@@ -43,11 +43,11 @@ int initialize_window(void)
     // Create the window in the top-left corner
     window = SDL_CreateWindow(
         "NotePlus",
-        0,    // Top-left corner x position
-        0,    // Top-left corner y position
+        10,    // Top-left corner x position
+        10,    // Top-left corner y position
         width,
         height,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS
+        SDL_WINDOW_OPENGL
     );
 
     if (!window) {

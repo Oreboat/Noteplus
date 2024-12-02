@@ -2,6 +2,7 @@
 #define WINDOW_MANAGER_H
 
 #include "../common.h"
+
 #include <GL/glew.h>
 #include <stdio.h>
 

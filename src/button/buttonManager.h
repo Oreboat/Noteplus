@@ -4,8 +4,16 @@
 
 #ifndef BUTTON_H
 #define BUTTON_H
-#include "common.h"
+#include "../common.h"
+#include "../window/windowManager.h"
+typedef struct button
+{
+    char* name;
+    SDL_Rect rect;
+    int row;
+    int order;
+}button;
+void createButton(struct button newButton,char* name, int row, int order, int corner, int width, int height);
 
-typedef SDL_Rect button;
-
+void drawButtons();
 #endif //BUTTON_H

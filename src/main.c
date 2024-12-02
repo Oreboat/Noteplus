@@ -5,9 +5,15 @@
 #include "common.h"
 #include "noteio/noteio.h"
 #include "appdetect/appdetect.h"
+#include "button/buttonManager.h"
 
 /* getline() is POSIX-only, so here is a custom version. */
 /* Returns bytes written, 0 on fail.                     */
+button FileButton;
+button EditButton;
+button ViewButton;
+button MinimizeButton;
+button ExitButton;
 size_t get_line(char dest_buf[], const char source_buf[], size_t len, size_t offset)
 {
     if (!dest_buf || !source_buf || len == 0) 
@@ -45,6 +51,11 @@ int main(int argc, char* argv[])
     uint32_t font_height;
     TTF_Font* font;
 
+    createButton(FileButton, "File\0" ,0, 0, 0, 60, 30);
+    createButton(EditButton, "Edit\0", 0, 1, 0, 60, 30);
+
+    
+
     /* Init phase */
     int running = initialize_window();
     initialize_input();
@@ -70,8 +81,11 @@ int main(int argc, char* argv[])
         start_time = SDL_GetTicks();
         save_flag = 0;
 
+        
+
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0) {
+             
             if (event.type == SDL_QUIT) 
             {
                 running = 0;
@@ -85,7 +99,7 @@ int main(int argc, char* argv[])
                     save_flag = 1;
                 }
             } 
-    
+            
             /* get input unto input_text */
             get_input(&event, input_text);
 
@@ -131,7 +145,7 @@ int main(int argc, char* argv[])
         /* Moved render_present out of render_input so it only renders once. */
         /* Flicker begone!                                                   */
         SDL_RenderPresent(renderer);
-
+        drawButtons();
         /* Clear screen to render info for next frame*/
         SDL_SetRenderDrawColor(renderer, 45, 45, 45, 255);
         SDL_RenderClear(renderer);
