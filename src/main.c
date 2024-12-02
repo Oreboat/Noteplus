@@ -40,11 +40,18 @@ int main(int argc, char* argv[])
     size_t offset, line_length;
     uint32_t start_time, frame_time;
     uint8_t save_flag, new_flag, open_flag,
-            save_to_set_flag, create_set_flag, open_set_flag;
+            save_to_set_flag, create_set_flag,
+            open_set_flag, create_path_flag,
+            app_detect_flag;
     uint32_t render_x, render_y;
     uint32_t newline_count;
     uint32_t font_height;
     TTF_Font* font;
+
+    char* detected_noteset[256];
+    uint32_t detect_downtime = 1000;
+    uint32_t detect_frame = 0;
+    char* current_noteset;
 
     /* Init phase */
     int running = initialize_window();
@@ -67,6 +74,10 @@ int main(int argc, char* argv[])
     const char *filename;
     const char *noteset_name;
     SDL_Renderer *renderer = get_renderer();
+
+    /* load notesets */
+    load_path_vars();
+
     while (running) 
     {    
         start_time = SDL_GetTicks();
@@ -76,6 +87,9 @@ int main(int argc, char* argv[])
         open_flag = 0;
         open_set_flag = 0;
         create_set_flag = 0;
+        create_path_flag = 0;
+        app_detect_flag = 0;
+        char* detected_noteset = "";
 
         /* SHORTCUTS:
 
@@ -96,6 +110,13 @@ int main(int argc, char* argv[])
             }
             else if(event.type == SDL_KEYDOWN)
             {
+                /* Check if CTRL+SHIFT+M is pressed for new note set with appdetect*/
+                if (event.key.keysym.sym == SDLK_m &&
+                (event.key.keysym.mod & KMOD_CTRL) && 
+                (event.key.keysym.mod & KMOD_SHIFT)){
+                    create_path_flag = 1;
+                }
+
                 /* Check if CTRL+SHIFT+N is pressed for new note set*/
                 if (event.key.keysym.sym == SDLK_n && 
                 (event.key.keysym.mod & KMOD_CTRL) && 
@@ -147,6 +168,39 @@ int main(int argc, char* argv[])
             /* get input unto input_text */
             get_input(&event, input_text);
         }
+
+        /* handing app detection*/
+        if (detect_frame == 0){
+            int detected_app = detectProcess(get_paths(), get_app_count());
+            if (detected_app >= 0){
+                printf("APPDETECTED!\n");
+
+                detected_noteset = get_sets()[detected_app];
+                if (strcmp(current_noteset, detected_noteset) != 0) {
+                    app_detect_flag = 1;
+                }
+
+            }
+            detect_frame = detect_downtime;
+        }
+        else {detect_frame--;}
+
+        /* if an app is detected run a similar program as open_noteset*/
+        if(app_detect_flag){
+            const char* notes_dir = "notes";
+            //strcpy(noteset_name, detected_noteset);
+            open_noteset(notes_dir, detected_noteset, input_text, MAX_INPUT_LENGTH);
+
+            strcpy(current_noteset, noteset_name);
+
+            //free((char*)noteset_name);
+
+            SDL_StopTextInput();
+            SDL_StartTextInput();
+
+            app_detect_flag = 0;
+        }
+
         /* For both saving a note to notes/ directory or to a specific noteset. Saving to noteset just adds an extra step */
         if(save_flag || save_to_set_flag)
         {
@@ -209,6 +263,7 @@ int main(int argc, char* argv[])
             new_flag = 0;
             SDL_StopTextInput();
             SDL_StartTextInput();
+            current_noteset = "";
             continue;
         }
         /* If CTRL + O is pressed, call open note for specified note. */
@@ -230,7 +285,9 @@ int main(int argc, char* argv[])
             const char* notes_dir = "notes";
             noteset_name = prompt_user("Enter Noteset Name to open: ");
             open_noteset(notes_dir, noteset_name, input_text, MAX_INPUT_LENGTH);
-
+            
+            strcpy(current_noteset, noteset_name);
+            
             free((char*)noteset_name);
 
             SDL_StopTextInput();
@@ -238,6 +295,21 @@ int main(int argc, char* argv[])
 
             open_set_flag = 0;
         }
+
+        /* If CTRL+SHIFT+M is pressed, get notesetname, get pathName, then call create_noteset to create a new noteset in the notesets directory */
+        if(create_path_flag){
+            const char* noteset_name;
+            const char* path_name;
+            noteset_name = prompt_user("Enter name for New Noteset: ");
+            path_name = prompt_user("Enter App for noteset to detect\n (e.g Notepad.exe, firefox.exe): ");
+            create_noteset(noteset_name, path_name);
+
+            SDL_StopTextInput();
+            SDL_StartTextInput();
+
+            create_path_flag = 0;
+        }
+
         /* If CTRL+SHIFT+N is pressed, get notesetname, then call create_noteset to create a new noteset in the notesets directory */
         if (create_set_flag){
             const char* noteset_name;
@@ -292,7 +364,6 @@ int main(int argc, char* argv[])
         {
             SDL_Delay(FRAME_DELAY - frame_time);  // Delay to match target frame time
         }
-
     }
 
     close_input();

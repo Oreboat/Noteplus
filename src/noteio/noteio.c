@@ -428,7 +428,10 @@ int getIndex(const char *key)
 
 int path_cmp(const char *app_path){
     for (int i = 0; i < paths_size; i++){
-        if (strcmp(app_path, paths[i]) == 0) {return 0;}
+        if (strcmp(app_path, paths[i]) == 0) {
+            printf("path already exists!\n");
+            return 0;
+            }
     }
     return 1;
 }
@@ -449,14 +452,16 @@ char* trim_path(const char *app_path) {
 int add_path(const char *noteset_name, const char *app_path){
     int index = getIndex(app_path); 
     if (index == -1) { // Key not found 
-        strcpy(paths[paths_size], app_path); 
+        
+        printf("%s\n",app_path);
+        paths[paths_size] = app_path; 
         notesets[paths_size] = noteset_name; 
         paths_size++; 
     } 
     else { // Key found 
         notesets[index] = noteset_name; 
     } 
-
+    
     save_path_file();
 
     return 0;
@@ -501,11 +506,9 @@ int save_path_file(){
     }
 
     // construct content to be written to file
-    char *size;
-    sprintf(size, "%d", paths_size);
-    char *content = size;
+    char content[256];
+    snprintf(content, sizeof(content), "%d", paths_size);
     strcat(content,"\n");
-
     for (int i = 0; i < paths_size; i++){
         strcat(content,paths[i]);
         strcat(content," ");
@@ -516,7 +519,7 @@ int save_path_file(){
         strcat(content," ");
     }
 
-        //construct path for file
+    //construct path for file
     snprintf(filepath, sizeof(filepath), "%s%s", notes_dir, "appdetect");
 
     FILE *file = fopen(filepath, "w+");
@@ -540,38 +543,73 @@ int save_path_file(){
     return 0;
 }
 
-int load_path_vars() {
-     FILE *file = fopen("notes/appdetect", "r");
+int load_path_vars() { struct stat st = {0};
+    const char *notes_dir = "notes/";
+
+    // Ensure notes/ directory exists
+    if (stat(notes_dir, &st) == -1) {
+        if (mkdir(notes_dir) != 0) {
+            perror("Failed to create notes directory");
+            return -1;
+        }
+    }
+
+    FILE *file = fopen("notes/appdetect", "r");
     if (file == NULL) {
-        perror("Error opening file for reading");
+        printf("appdetect file doesn't exist\n");
         return -1;
     }
 
-    // memory allocation for content of file
-    char *buffer = (char *)malloc(MAX_FILE_SIZE);
-    if (buffer == NULL) {
-        perror("Error allocating memory for file content");
+    // Read the first line: number of notesets
+    if (fscanf(file, "%d\n", &paths_size) != 1) {
+        printf("Error reading number of notesets\n");
         fclose(file);
+        return -1;
     }
 
-    // read file into buffer
-    size_t bytesRead = fread(buffer, sizeof(char), MAX_FILE_SIZE - 1, file);
-    if (bytesRead == 0 && ferror(file)) {
-        perror("Error reading file");
-        free(buffer);
-        fclose(file);
+    // Read the second line: paths of the notesets
+    char pathBuffer[256];
+    for (int i = 0; i < paths_size; i++) {
+        if (fscanf(file, "%s", pathBuffer) != 1) {
+            printf("Error reading path for noteset %d\n", i);
+            fclose(file);
+            return -1;
+        }
+        paths[i] = strdup(pathBuffer);  // Copy path string
     }
 
-    // Null-terminate buffer
-    buffer[bytesRead] = '\0';
+    // Read the third line: names of the notesets
+    char nameBuffer[256];
+    for (int i = 0; i < paths_size; i++) {
+        if (fscanf(file, "%s", nameBuffer) != 1) {
+            printf("Error reading name for noteset %d\n", i);
+            fclose(file);
+            return -1;
+        }
+        notesets[i] = strdup(nameBuffer);  // Copy name string
+    }
 
-    // Close file and return buffer to pass for rendering
+    // Successfully read and stored all note set data
     fclose(file);
-    
-    //with buffer now read the file will now allocate its contents into its respective variables
-    buffer;
 
+    // Output loaded data (for verification)
+    printf("Loaded %d notesets:\n", paths_size);
+    for (int i = 0; i < paths_size; i++) {
+        printf("Noteset %d: Path = %s, Name = %s\n", i + 1, paths[i], notesets[i]);
+    }
 
     return 0;
+}
+
+char** get_paths(void){
+    return paths;
+}
+
+char** get_sets(void){
+    return notesets;
+}
+
+int get_app_count(void){
+    return paths_size;
 }
 

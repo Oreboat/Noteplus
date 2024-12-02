@@ -135,5 +135,10 @@ int remove_path(const char *app_path);
 * removes the specified path. used when deleting a noteset
 */
 
+char **get_paths(void);
+char** get_sets(void);
+int get_app_count(void);
+
+
 char* unix_path_convert(char *string);
 #endif

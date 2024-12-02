@@ -3,5 +3,5 @@
 #include <windows.h>
 #include <tlhelp32.h>
 
-int isProcessRunning(const char* app, HANDLE hSnapshot);
-int detectProcess(const char* apps[], int appCount);
+int isProcessRunning(char* app, HANDLE hSnapshot);
+int detectProcess(char* apps[], int appCount);

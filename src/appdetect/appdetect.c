@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <tlhelp32.h>
 
-int isProcessRunning(const char* app, HANDLE hSnapshot){
+int isProcessRunning(char* app, HANDLE hSnapshot){
     PROCESSENTRY32 processEntry;
 
     if (hSnapshot == INVALID_HANDLE_VALUE) {
@@ -29,7 +29,7 @@ int isProcessRunning(const char* app, HANDLE hSnapshot){
 // Detects whichever listed apps are running format of input should follow the example:
 // "Notepad.exe, firefox.exe"
 // This process may need to be altered for other OS as this has only been tested on Windows
-int detectProcess(const char* apps[], int appCount){
+int detectProcess(char* apps[], int appCount){
     HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     
     if (hSnapshot == INVALID_HANDLE_VALUE) {
@@ -43,15 +43,18 @@ int detectProcess(const char* apps[], int appCount){
             hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
             if (hSnapshot == INVALID_HANDLE_VALUE) {
                 printf("Error creating snapshot\n");
-                return 1;
+                return -1;
             }
         }
-        else {printf("Yay! The application '%s' is running.\n", apps[i]);}
-        Sleep(1000);
+        else {
+            printf("Yay! The application '%s' is running.\n", apps[i]);
+            return i;
+            }
+        //Sleep(1000);
     }
     
     CloseHandle(hSnapshot);
-    return 0;
+    return -2;
 }
 
 
