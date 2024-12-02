@@ -48,7 +48,7 @@ void new_note(char *buffer, size_t buffer_size);
     -Creates a new noteset under the notes/notesets directory
     -Takes a noteset name
 */
-int create_noteset(const char *noteset_name);
+//int create_noteset(const char *noteset_name);
 
 /*
     -Saves the current note to the specified noteset.

@@ -77,7 +77,6 @@ int main(int argc, char* argv[])
         open_set_flag = 0;
         create_set_flag = 0;
 
-    
         /* SHORTCUTS:
 
             CTRL+S: Save a note to notes/
@@ -86,6 +85,7 @@ int main(int argc, char* argv[])
             CTRL+SHIFT+S: Save a note to noteset
             CTRL+SHIFT+O: Open a noteset
             CTRL+SHIFT+N: Create a new noteset
+            CTRL+SHIFT+M: Create a new noteset w/ tagged app
 
         */
         SDL_Event event;
@@ -190,15 +190,16 @@ int main(int argc, char* argv[])
                     //clear buffer
                     new_note(input_text, MAX_INPUT_LENGTH);
                 }
+            }
 
             if(save_flag == 1)
             {
                 /* If ctrl + s is hit, this will return a string to be saved to file. */
                 strncpy(save_buf, input_text, MAX_INPUT_LENGTH - 1);
                 save_buf[strlen(input_text)] = '\0';
-                const char *filename = prompt_filename("Enter Filename: ");
+                const char *filename = prompt_user("Enter Filename: ");
                 printf("Filename: %s\n", filename);
-                save_file(filename, save_buf);
+                save_file(filename, save_buf,1);
                 //puts(save_buf);
                 goto end;
 
@@ -241,7 +242,7 @@ int main(int argc, char* argv[])
         if (create_set_flag){
             const char* noteset_name;
             noteset_name = prompt_user("Enter name for New Noteset: ");
-            create_noteset(noteset_name);
+            create_noteset(noteset_name, NULL);
             free((char*)noteset_name);
 
             SDL_StopTextInput();
