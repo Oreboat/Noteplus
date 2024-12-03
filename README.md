@@ -40,3 +40,7 @@ When creating a new note, saving will automatically occur before the new note is
 To exit the program, simply x it out. Be careful to save first!
 
 # Installation Guide
+Install the zip file "release.build.zip" in the "NotePlus end of semester Release" release.
+
+After unzipping the file, you can just run Noteplus.exe!
+(Only works on windows.)
