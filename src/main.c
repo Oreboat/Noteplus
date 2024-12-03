@@ -54,10 +54,10 @@ int main(int argc, char* argv[])
     uint32_t font_height;
     TTF_Font* font;
 
-    char* detected_noteset[256];
+    char* detected_noteset;
     uint32_t detect_downtime = 500;
     uint32_t detect_frame = 0;
-    char* current_noteset;
+    
 
     createButton(FileButton, "File\0" ,0, 0, 0, 60, 30);
     createButton(EditButton, "Edit\0", 0, 1, 0, 60, 30);
@@ -85,6 +85,7 @@ int main(int argc, char* argv[])
     const char *filename;
     const char *noteset_name;
     SDL_Renderer *renderer = get_renderer();
+    char* current_noteset = malloc(MAX_INPUT_LENGTH);
 
     /* load notesets */
     load_path_vars();
@@ -205,7 +206,7 @@ int main(int argc, char* argv[])
             //strcpy(noteset_name, detected_noteset);
             open_noteset(notes_dir, detected_noteset, input_text, MAX_INPUT_LENGTH);
 
-            strcpy(current_noteset, noteset_name);
+            strcpy(current_noteset, detected_noteset);
 
             //free((char*)noteset_name);
 
