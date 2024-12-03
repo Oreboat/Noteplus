@@ -15,14 +15,14 @@ Whether you are noting your thought process for a video you need to edit or reco
 you need to solve in a game, your notes will be there for you automatically.
 
 # How to Use
-Keybinds:
-  CTRL+S -> saves your working file, prompting you to make a note if you haven't already
-  CTRL+N -> creates a new note, automatically saving your previous file
-  CTRL+O -> opens an existing note
-  CTRL+SHIFT+S -> Save a note to noteset
-  CTRL+SHIFT+O -> Open a noteset
-  CTRL+SHIFT+N -> Create a new noteset
-  CTRL+SHIFT+M -> Create a new noteset w/ tagged app
+Keybinds:  
+  CTRL+S -> saves your working file, prompting you to make a note if you haven't already  
+  CTRL+N -> creates a new note, automatically saving your previous file  
+  CTRL+O -> opens an existing note  
+  CTRL+SHIFT+S -> Save a note to noteset  
+  CTRL+SHIFT+O -> Open a noteset  
+  CTRL+SHIFT+N -> Create a new noteset  
+  CTRL+SHIFT+M -> Create a new noteset w/ tagged app  
 
 
 After launching Noteplus, you can use CTRL+SHIFT+M to create a noteset alongside a partner program.
